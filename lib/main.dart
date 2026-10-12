@@ -566,7 +566,81 @@ class TransferScreen extends StatelessWidget {
     );
   }
 }
+// ---------------- MODIFICAR DESTINATARIO ----------------
+class ModifyRecipientScreen extends StatefulWidget {
+  const ModifyRecipientScreen({super.key});
 
+  @override
+  State<ModifyRecipientScreen> createState() => _ModifyRecipientScreenState();
+}
+
+class _ModifyRecipientScreenState extends State<ModifyRecipientScreen> {
+  late final TextEditingController _nameC =
+      TextEditingController(text: kNombre);
+  late final TextEditingController _cuilC =
+      TextEditingController(text: kCuil);
+  late final TextEditingController _cbuC =
+      TextEditingController(text: kCbu);
+
+  @override
+  void dispose() {
+    _nameC.dispose();
+    _cuilC.dispose();
+    _cbuC.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Modificar destinatario'),
+        backgroundColor: kPurple,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _nameC,
+              decoration: const InputDecoration(
+                labelText: 'Nombre',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _cuilC,
+              decoration: const InputDecoration(
+                labelText: 'CUIL',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _cbuC,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'CBU',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            purpleButton('Guardar', () {
+              Navigator.pop(context, {
+                'nombre': _nameC.text.trim(),
+                'cuil': _cuilC.text.trim(),
+                'cbu': _cbuC.text.trim(),
+              });
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
 // ---------------- MONTO ----------------
 class _AmountFormatter extends TextInputFormatter {
   @override
