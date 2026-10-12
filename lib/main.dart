@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'screens/accounts_screen.dart'; // 🆕
 
 const kPurple = Color(0xFF500080);
 const kLilac = Color(0xFFF1E8F7);
@@ -285,7 +286,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _nav(Icons.home_outlined, 'Inicio', true),
-                  _nav(Icons.bar_chart, 'Cuentas', false),
+                  // 🆕 "Cuentas" ahora navega a la pantalla de cuentas bancarias
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AccountsScreen()),
+                      );
+                    },
+                    child: _nav(Icons.bar_chart, 'Cuentas', false),
+                  ),
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: const BoxDecoration(color: kPurple, shape: BoxShape.circle),
@@ -956,3 +966,4 @@ class _SuccessScreenState extends State<SuccessScreen> {
     );
   }
 }
+```
