@@ -12,7 +12,8 @@ const kGrey = Color(0xFF6E6E6E);
 const kOrange = Color(0xFFFF5A1F);
 const kBadge = Color(0xFFC8400A);
 
-const kNombre = 'Carmena Gutierrez Elias Rene Isaac';
+// ✅ Ahora es mutable para poder editar el nombre del destinatario
+String kNombre = 'Carmena Gutierrez Elias Rene Isaac';
 const kCuil = '20-49470022-1';
 const kCbu = '0110169630016910970301';
 
@@ -566,81 +567,7 @@ class TransferScreen extends StatelessWidget {
     );
   }
 }
-// ---------------- MODIFICAR DESTINATARIO ----------------
-class ModifyRecipientScreen extends StatefulWidget {
-  const ModifyRecipientScreen({super.key});
 
-  @override
-  State<ModifyRecipientScreen> createState() => _ModifyRecipientScreenState();
-}
-
-class _ModifyRecipientScreenState extends State<ModifyRecipientScreen> {
-  late final TextEditingController _nameC =
-      TextEditingController(text: kNombre);
-  late final TextEditingController _cuilC =
-      TextEditingController(text: kCuil);
-  late final TextEditingController _cbuC =
-      TextEditingController(text: kCbu);
-
-  @override
-  void dispose() {
-    _nameC.dispose();
-    _cuilC.dispose();
-    _cbuC.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Modificar destinatario'),
-        backgroundColor: kPurple,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameC,
-              decoration: const InputDecoration(
-                labelText: 'Nombre',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _cuilC,
-              decoration: const InputDecoration(
-                labelText: 'CUIL',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _cbuC,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'CBU',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            purpleButton('Guardar', () {
-              Navigator.pop(context, {
-                'nombre': _nameC.text.trim(),
-                'cuil': _cuilC.text.trim(),
-                'cbu': _cbuC.text.trim(),
-              });
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-}
 // ---------------- MONTO ----------------
 class _AmountFormatter extends TextInputFormatter {
   @override
@@ -777,12 +704,28 @@ class _AmountScreenState extends State<AmountScreen> {
 }
 
 // ---------------- CONFIRMAR ----------------
-class ConfirmScreen extends StatelessWidget {
+class ConfirmScreen extends StatefulWidget {
   final double monto;
   const ConfirmScreen({super.key, required this.monto});
 
   @override
+  State<ConfirmScreen> createState() => _ConfirmScreenState();
+}
+
+class _ConfirmScreenState extends State<ConfirmScreen> {
+  Future<void> _editarNombre() async {
+    final nuevo = await showDialog<String>(
+      context: context,
+      builder: (_) => const _EditNameDialog(),
+    );
+    if (nuevo != null && nuevo.trim().isNotEmpty) {
+      setState(() => kNombre = nuevo.trim());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final monto = widget.monto;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -802,14 +745,30 @@ class ConfirmScreen extends StatelessWidget {
                     child: const Icon(Icons.account_balance, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Vas a transferir a', style: TextStyle(color: kGrey, fontSize: 15)),
-                        Text(kNombre, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                        Text('CUIL: $kCuil', style: TextStyle(color: kGrey, fontSize: 15)),
-                        Text('CBU: $kCbu', style: TextStyle(fontSize: 15)),
+                        const Text('Vas a transferir a', style: TextStyle(color: kGrey, fontSize: 15)),
+                        // ✅ Nombre tocable para editar
+                        GestureDetector(
+                          onTap: _editarNombre,
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  kNombre,
+                                  style: const TextStyle(
+                                      fontSize: 16, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.edit, color: kPurple, size: 16),
+                            ],
+                          ),
+                        ),
+                        const Text('CUIL: $kCuil', style: TextStyle(color: kGrey, fontSize: 15)),
+                        const Text('CBU: $kCbu', style: TextStyle(fontSize: 15)),
                       ],
                     ),
                   ),
@@ -1037,6 +996,50 @@ class _SuccessScreenState extends State<SuccessScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------- DIÁLOGO EDITAR NOMBRE ----------------
+class _EditNameDialog extends StatefulWidget {
+  const _EditNameDialog();
+
+  @override
+  State<_EditNameDialog> createState() => _EditNameDialogState();
+}
+
+class _EditNameDialogState extends State<_EditNameDialog> {
+  late final TextEditingController _c = TextEditingController(text: kNombre);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Cambiar nombre'),
+      content: TextField(
+        controller: _c,
+        autofocus: true,
+        textCapitalization: TextCapitalization.words,
+        decoration: const InputDecoration(
+          labelText: 'Nombre del destinatario',
+          border: OutlineInputBorder(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _c.text),
+          child: const Text('Guardar'),
+        ),
+      ],
     );
   }
 }
