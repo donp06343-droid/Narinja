@@ -826,6 +826,48 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
   }
 }
 
+// ---------------- RECORTE DE TARJETA PARA EL ÉXITO ----------------
+class CardClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    double cornerRadius = 24.0;
+    double notchWidth = 110.0; // Ancho del hueco
+    double notchDepth = 45.0; // Profundidad del hueco
+
+    // Esquina superior izquierda
+    path.moveTo(0, cornerRadius);
+    path.quadraticBezierTo(0, 0, cornerRadius, 0);
+    
+    // Borde superior hasta el hueco
+    path.lineTo((size.width - notchWidth) / 2, 0);
+    
+    // Curva del hueco (invertida)
+    path.quadraticBezierTo(
+      size.width / 2, notchDepth * 2, 
+      (size.width + notchWidth) / 2, 0
+    );
+    
+    // Borde superior hasta la esquina derecha
+    path.lineTo(size.width - cornerRadius, 0);
+    path.quadraticBezierTo(size.width, 0, size.width, cornerRadius);
+    
+    // Borde derecho hacia abajo
+    path.lineTo(size.width, size.height - cornerRadius);
+    path.quadraticBezierTo(size.width, size.height, size.width - cornerRadius, size.height);
+    
+    // Borde inferior
+    path.lineTo(cornerRadius, size.height);
+    path.quadraticBezierTo(0, size.height, 0, size.height - cornerRadius);
+    
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
 // ---------------- ÉXITO ----------------
 class SuccessScreen extends StatefulWidget {
   final double monto;
@@ -875,171 +917,69 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       alignment: Alignment.topCenter,
                       clipBehavior: Clip.none,
                       children: [
-                        Container(
-                          margin: const EdgeInsets.only(top: 44),
-                          padding: const EdgeInsets.fromLTRB(16, 62, 16, 20),
-                          width: double.infinity,
-                          decoration: BoxDecoration(
+                        // Contenedor principal de la tarjeta con recorte
+                        Padding(
+                          padding: const EdgeInsets.only(top: 40.0),
+                          child: PhysicalModel(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: const Color(0xFFE6E6E6)),
-                          ),
-                          child: Column(
-                            children: [
-                              Text('Transferiste \$ ${fmtMoney(widget.monto)} a $kNombre',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-                              const SizedBox(height: 20),
-                              const Divider(height: 1),
-                              const SizedBox(height: 14),
-                              Row(
+                            elevation: 3,
+                            shadowColor: Colors.black.withOpacity(0.1),
+                            clipper: CardClipper(),
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(20, 65, 20, 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(color: const Color(0xFFE6E6E6)),
+                              ),
+                              child: Column(
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                    decoration: BoxDecoration(
-                                        border: Border.all(color: const Color(0xFFDDDDDD)),
-                                        borderRadius: BorderRadius.circular(6)),
-                                    child: nxLogo(size: 18),
+                                  Text('Transferiste \$ ${fmtMoney(widget.monto)} a $kNombre',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                                  const SizedBox(height: 20),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 14),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(color: const Color(0xFFDDDDDD)),
+                                            borderRadius: BorderRadius.circular(6)),
+                                        child: nxLogo(size: 18),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Con dinero de tu cuenta en pesos', style: TextStyle(fontSize: 15)),
+                                    ],
                                   ),
-                                  const SizedBox(width: 12),
-                                  const Text('Con dinero de tu cuenta en pesos', style: TextStyle(fontSize: 16)),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              const Divider(height: 1),
-                              const SizedBox(height: 14),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.info, color: Color(0xFF1155AA), size: 18),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text('Código de transacción: $codigo',
-                                        style: const TextStyle(fontSize: 14, color: kGrey)),
+                                  const SizedBox(height: 14),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 14),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.info, color: Color(0xFF1155AA), size: 18),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text('Código de transacción: $codigo',
+                                            style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              const Align(
-                                alignment: Alignment.centerLeft,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('A su cuenta de:', style: TextStyle(fontSize: 16)),
-                                    SizedBox(height: 6),
-                                    Text('●  Banco Nación', style: TextStyle(fontSize: 16)),
-                                    SizedBox(height: 4),
-                                    Text('●  CBU: $kCbu', style: TextStyle(fontSize: 16)),
-                                    SizedBox(height: 4),
-                                    Text('●  CUIL: $kCuil', style: TextStyle(fontSize: 16)),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              purpleButton('Compartir comprobante', () {}),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          width: 88,
-                          height: 88,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Color(0xFF45C27A), Color(0xFF2FA55F)]),
-                          ),
-                          child: const Icon(Icons.check, color: Colors.white, size: 56),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 2))],
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.touch_app_outlined, size: 34),
-                          SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Categorizá este movimiento',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                                Text('Dale seguimiento a tus gastos.', style: TextStyle(color: kGrey)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              color: Colors.white,
-              child: TextButton(
-                style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 18)),
-                onPressed: () => Navigator.popUntil(context, (r) => r.isFirst),
-                child: const Text('Ir a Inicio',
-                    style: TextStyle(color: kPurple, fontSize: 16, fontWeight: FontWeight.w600)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------- DIÁLOGO EDITAR NOMBRE ----------------
-class _EditNameDialog extends StatefulWidget {
-  const _EditNameDialog();
-
-  @override
-  State<_EditNameDialog> createState() => _EditNameDialogState();
-}
-
-class _EditNameDialogState extends State<_EditNameDialog> {
-  late final TextEditingController _c = TextEditingController(text: kNombre);
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Cambiar nombre'),
-      content: TextField(
-        controller: _c,
-        autofocus: true,
-        textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(
-          labelText: 'Nombre del destinatario',
-          border: OutlineInputBorder(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, _c.text),
-          child: const Text('Guardar'),
-        ),
-      ],
-    );
-  }
-}
+                                  const SizedBox(height: 14),
+                                  const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('A su cuenta de:', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                                        SizedBox(height: 6),
+                                        Text('●  Banco Nación', style: TextStyle(fontSize: 15)),
+                                        SizedBox(height: 4),
+                                        Text('●  CBU: $kCbu', style: TextStyle(fontSize: 15)),
+                                        SizedBox(height: 4),
+                                        Text('●  CUIL: $kCuil', style: TextStyle(fontSize: 15)),
+                                      ],
+                                    ),
+                                  ),
+                    
