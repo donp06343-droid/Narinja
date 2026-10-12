@@ -966,4 +966,3 @@ class _SuccessScreenState extends State<SuccessScreen> {
     );
   }
 }
-```
